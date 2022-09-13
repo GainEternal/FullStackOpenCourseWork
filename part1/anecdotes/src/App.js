@@ -22,7 +22,7 @@ const App = () => {
     setVotes(cpVotes)
   }
 
-  const idxOfMax = (arr) => {
+  const getIdxOfMax = (arr) => {
     return arr.indexOf(Math.max(...arr))
   }
 
@@ -52,7 +52,7 @@ const App = () => {
         <Button handleClick={() => setSelected(getRandomInt(0,7))} text="Next Anecdote"/>
       </p>
       <h1>Anecdote with Most Votes</h1>
-      {anecdotes[idxOfMax(votes)]} <br/>
+      {anecdotes[getIdxOfMax(votes)]} <br/>
       ----------------------------------<br/>
       This anecdote has {Math.max(...votes)} votes!
 
