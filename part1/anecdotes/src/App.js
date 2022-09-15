@@ -1,9 +1,19 @@
 import { useState } from 'react'
 
+const Anecdote = ({text, votes}) => (
+  <>
+    {text}<br/>
+    ----------------------------------<br/>
+    This anecdote has {votes} votes!
+  </>
+)
+
 const Button = (props) => {
   return (
     <>
-      <button onClick={props.handleClick}>{props.text}</button>
+      <button onClick={props.handleClick}>
+        {props.text}
+        </button>
     </>
   )
 }
@@ -16,7 +26,7 @@ const App = () => {
     return Math.floor(Math.random() * (max - min) + min);
   }
 
-  const handleVoteClicks = ({votes, selected}) => {
+  const handleVoteClicks = () => {
     const cpVotes = [...votes]
     cpVotes[selected] += 1
     setVotes(cpVotes)
@@ -43,18 +53,20 @@ const App = () => {
     <>
       <h1>Anecdote of the Day</h1>
       <p>
-        {anecdotes[selected]}<br/>
-        ----------------------------------<br/>
-        This anecdote has {votes[selected]} votes
+        <Anecdote 
+          text={anecdotes[selected]} 
+          votes={votes[selected]} 
+        />
       </p>
       <p>
-        <Button handleClick={() => handleVoteClicks({votes, selected})} text="Vote" />
-        <Button handleClick={() => setSelected(getRandomInt(0,7))} text="Next Anecdote"/>
+        <Button handleClick={() => handleVoteClicks()} text="Vote" />
+        <Button handleClick={() => setSelected(getRandomInt(0,anecdotes.length))} text="Next Anecdote" />
       </p>
       <h1>Anecdote with Most Votes</h1>
-      {anecdotes[getIdxOfMax(votes)]} <br/>
-      ----------------------------------<br/>
-      This anecdote has {Math.max(...votes)} votes!
+        <Anecdote 
+          text={anecdotes[getIdxOfMax(votes)]} 
+          votes={Math.max(...votes)} 
+        />
 
     </>
   )
