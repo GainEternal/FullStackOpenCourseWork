@@ -1,72 +1,13 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
-/* 
-import Filter from "./components/Filter"
-import NewContact from "./components/NewContact"
-import Persons from "./components/Persons" */
+import Countries from './components/Countries'
+import Filter from './components/Filter'
 
-const Filter = ({ filterText, handleFilter }) => 
-  <div>
-    Find Countries:
-    <input value={filterText} onChange={handleFilter} />
-  </div>
-
-const Countries = ({ countries, filter }) => {
-  /* if (filter === '') {
-    return <ul>
-      {countries
-        .map((country) => <Country key={country.name.common} country={country.name.common}/>)
-      }
-    </ul>
-  } */
-
-  const filteredCountries = countries.filter((country) => 
-    country.name.common.toLowerCase().includes(filter.toLowerCase()))
-
-  if (filteredCountries.length > 10) {
-    return <div>Too many matches. Specify another filter.</div>
-  } else if (filteredCountries.length > 1) {
-    return <ul>
-      {filteredCountries
-        .map((country) => <Country key={country.name.common} country={country.name.common}/>)
-      }
-    </ul>
-  } else if(filteredCountries.length === 1) {
-    return (
-      <div>
-        <h2>{filteredCountries[0].name.common}</h2>
-        <div>
-          Region: {filteredCountries[0].region}<br/>
-          Capital: {filteredCountries[0].capital}<br/>
-          Area: {filteredCountries[0].area} km<sup>2</sup><br/>
-          Population: {filteredCountries[0].population}<br/>
-
-          <h3>Languages</h3>
-          <ul>
-            {Object.values(filteredCountries[0].languages)
-              .map((language) => <Language key={language} language={language}/>)
-            }
-          </ul>
-
-          <img src={filteredCountries[0].flags.png} alt="Country Flag" />
-
-        </div>
-      </div>
-    )
-  } else {
-    return <div>
-      No countries match
-    </div>
-  }
-}
-
-const Country = ({ country }) => <li>{country}</li>
-const Language = ({ language }) => <li>{language}</li>
 
 const App = () => {
   const [countries, setCountries] = useState([])
   const [filterText, setFilterText] = useState('')
-  const [onlyOne, setOnlyOne] = useState(false)
+  const [oneCountry, setOneCountry] = useState(false)
 
   useEffect(() => {
     if (!countries.length) {
@@ -78,10 +19,14 @@ const App = () => {
     }
   }, [])
 
-
   const handleFilterChange = (event) => {
     setFilterText(event.target.value)
+  }
 
+  const handleShow = (event) => {
+    event.preventDefault()
+    console.log(event.target);
+    setFilterText(event.target.id)
   }
 
   return (
@@ -93,7 +38,11 @@ const App = () => {
       --------------------------------------------------------
       <br></br>
       <div>
-        <Countries countries={countries} filter={filterText}/>
+        <Countries 
+          countries={countries} 
+          filter={filterText} 
+          oneCountry={oneCountry}
+          handleButton={handleShow}/>
       </div>
 
       {/* <h1>Phonebook</h1>
