@@ -23,5 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 #my
-**/node_modules/
-**/course/
+**/node_modules
+**/course
+.env

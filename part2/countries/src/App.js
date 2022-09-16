@@ -3,11 +3,17 @@ import axios from 'axios'
 import Countries from './components/Countries'
 import Filter from './components/Filter'
 
+const api_key = process.env.REACT_APP_API_KEY
+// variable api_key has now the value set in startup
 
 const App = () => {
   const [countries, setCountries] = useState([])
   const [filterText, setFilterText] = useState('')
-  const [oneCountry, setOneCountry] = useState(false)
+  const [weather, setWeather] = useState({})
+  const [api_url, setApi_url] = useState(
+    `https://api.openweathermap.org/data/2.5/weather?q=Washington+DC&units=metric&appid=${api_key}`
+    )
+
 
   useEffect(() => {
     if (!countries.length) {
@@ -19,14 +25,33 @@ const App = () => {
     }
   }, [])
 
+  useEffect(() => {
+    axios
+    .get(api_url)
+    .then(response => {
+      setWeather(response.data)
+    })
+  }, [api_url])
+
+  const changeFilterText = (newFilter) => {
+    const filteredCountries = countries.filter((country) => 
+      country.name.common.toLowerCase().includes(newFilter.toLowerCase()))
+    if (filteredCountries.length === 1) {
+      const cityName = filteredCountries[0].capital[0]
+      const countryCode = filteredCountries[0].name.common
+      const new_url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName},${countryCode}&units=metric&appid=${api_key}`
+      setApi_url(new_url)
+    }
+    setFilterText(newFilter)
+  }
+
   const handleFilterChange = (event) => {
-    setFilterText(event.target.value)
+    changeFilterText(event.target.value)
   }
 
   const handleShow = (event) => {
     event.preventDefault()
-    console.log(event.target);
-    setFilterText(event.target.id)
+    changeFilterText(event.target.id)
   }
 
   return (
@@ -40,26 +65,10 @@ const App = () => {
       <div>
         <Countries 
           countries={countries} 
-          filter={filterText} 
-          oneCountry={oneCountry}
-          handleButton={handleShow}/>
+          filter={filterText}
+          handleButton={handleShow}
+          weather={weather}/>
       </div>
-
-      {/* <h1>Phonebook</h1>
-
-      <Filter filterText={filterText} handleFilter={handleFilterChange} />
-
-      <h2>Add New Contact</h2>
-      <NewContact 
-        newName={newName}
-        handleName={handleNameChange}
-        newNumber={newNumber}
-        handleNumber={handleNumberChange}
-        handleButton={addContact}
-      />
-
-      <h2>Contacts</h2>
-      <Persons persons={persons} filter={filterText} /> */}
     </div>
   )
 }
