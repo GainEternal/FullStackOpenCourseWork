@@ -12,13 +12,13 @@ const Filter = ({ filterText, handleFilter }) =>
   </div>
 
 const Countries = ({ countries, filter }) => {
-  if (filter === '') {
+  /* if (filter === '') {
     return <ul>
       {countries
         .map((country) => <Country key={country.name.common} country={country.name.common}/>)
       }
     </ul>
-  }
+  } */
 
   const filteredCountries = countries.filter((country) => 
     country.name.common.toLowerCase().includes(filter.toLowerCase()))
