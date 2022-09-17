@@ -38,7 +38,7 @@ const CountryData = ({ country, weather }) => {
 
         <img src={country.flags.png} alt="Country Flag" />
 
-        <h3>Weather in {country.capital}</h3>
+        <h3>Weather in {country.hasOwnProperty("capital") ? country.capital : country.name.common}</h3>
         <Weather weather={weather} />
             
     </div>
@@ -47,13 +47,16 @@ const CountryData = ({ country, weather }) => {
 const BasicInfo = ({ country }) => {
     return <>
         Region: {country.region}<br/>
-        Capital: {country.capital.toString()}<br/>
+        Capital: {country.hasOwnProperty("capital") ? country.capital.toString() : 'N/A'} <br/>
         Area: {country.area} km<sup>2</sup><br/>
         Population: {country.population}<br/>
     </>
 }
 
 const Languages = ({ country }) => {
+    if (!country.hasOwnProperty('languages')) {
+        return <></>
+    }
     return <ul>
         {Object.values(country.languages)
             .map((language) => <Language key={language} language={language}/>)

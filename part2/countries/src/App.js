@@ -6,6 +6,10 @@ import Filter from './components/Filter'
 const api_key = process.env.REACT_APP_API_KEY
 // variable api_key has now the value set in startup
 
+const TestButton = ({ handleTest }) => {
+  return <button id='test' onClick={handleTest} type="submit">Cycle Test</button>
+}
+
 const App = () => {
   const [countries, setCountries] = useState([])
   const [filterText, setFilterText] = useState('')
@@ -13,6 +17,7 @@ const App = () => {
   const [api_url, setApi_url] = useState(
     `https://api.openweathermap.org/data/2.5/weather?q=Washington+DC&units=metric&appid=${api_key}`
     )
+  const [testNum, setTestNum] = useState(0)
 
 
   useEffect(() => {
@@ -37,25 +42,44 @@ const App = () => {
     const filteredCountries = countries.filter((country) => 
       country.name.common.toLowerCase().includes(newFilter.toLowerCase()))
     if (filteredCountries.length === 1) {
-      const cityName = filteredCountries[0].capital[0]
       const countryCode = filteredCountries[0].name.common
-      const new_url = `https://api.openweathermap.org/data/2.5/weather?q=${cityName},${countryCode}&units=metric&appid=${api_key}`
+      if (filteredCountries[0].capitalInfo.hasOwnProperty("latlng")) {
+        var latitude = filteredCountries[0].capitalInfo.latlng[0]
+        var longitude = filteredCountries[0].capitalInfo.latlng[1]
+      } else {
+        var latitude = filteredCountries[0].latlng[0]
+        var longitude = filteredCountries[0].latlng[1]
+      }
+      const new_url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${api_key}`
       setApi_url(new_url)
     }
     setFilterText(newFilter)
+  }
+
+  const iterTest = () => {
+    changeFilterText(countries[testNum].name.common)
+    setTestNum(testNum+1)
   }
 
   const handleFilterChange = (event) => {
     changeFilterText(event.target.value)
   }
 
-  const handleShow = (event) => {
+  const handleShowButton = (event) => {
     event.preventDefault()
     changeFilterText(event.target.id)
   }
 
+  const handleTest = (event) => {
+    event.preventDefault()
+    if (testNum < countries.length) {
+      iterTest()
+    }
+  }
+
   return (
     <div>
+      <TestButton handleTest={handleTest}/>
       <h1>Country Data</h1>
       <div>
         <Filter filterText={filterText} handleFilter={handleFilterChange}/>
@@ -66,7 +90,7 @@ const App = () => {
         <Countries 
           countries={countries} 
           filter={filterText}
-          handleButton={handleShow}
+          handleButton={handleShowButton}
           weather={weather}/>
       </div>
     </div>
