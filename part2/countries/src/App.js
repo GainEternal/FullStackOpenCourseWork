@@ -6,10 +6,6 @@ import Filter from './components/Filter'
 const api_key = process.env.REACT_APP_API_KEY
 // variable api_key has now the value set in startup
 
-const TestButton = ({ handleTest }) => {
-  return <button id='test' onClick={handleTest} type="submit">Cycle Test</button>
-}
-
 const App = () => {
   const [countries, setCountries] = useState([])
   const [filterText, setFilterText] = useState('')
@@ -56,11 +52,6 @@ const App = () => {
     setFilterText(newFilter)
   }
 
-  const iterTest = () => {
-    changeFilterText(countries[testNum].name.common)
-    setTestNum(testNum+1)
-  }
-
   const handleFilterChange = (event) => {
     changeFilterText(event.target.value)
   }
@@ -70,16 +61,8 @@ const App = () => {
     changeFilterText(event.target.id)
   }
 
-  const handleTest = (event) => {
-    event.preventDefault()
-    if (testNum < countries.length) {
-      iterTest()
-    }
-  }
-
   return (
     <div>
-      <TestButton handleTest={handleTest}/>
       <h1>Country Data</h1>
       <div>
         <Filter filterText={filterText} handleFilter={handleFilterChange}/>
