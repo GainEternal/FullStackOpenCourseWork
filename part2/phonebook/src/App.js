@@ -4,6 +4,7 @@ import axios from 'axios'
 import Filter from "./components/Filter"
 import NewContact from "./components/NewContact"
 import Persons from "./components/Persons"
+import personService from "./services/persons"
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -12,11 +13,13 @@ const App = () => {
   const [filterText, setFilterText] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(persons.concat(response.data))
-      })
+    if (!persons.length) {
+      personService
+        .getAll()
+        .then(initialContacts => {
+          setPersons(persons.concat(initialContacts))
+        })
+    }
   }, [])
 
   const handleNameChange = (event) => {
@@ -29,28 +32,61 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setFilterText(event.target.value)
+  }
 
+  const deletePersonOf = (id) => {
+    const name = persons.find(person => person.id === id).name
+    if (window.confirm(`Delete ${name}?`)) {
+      personService
+        .remove(id)
+        .then(returned => {
+          setPersons(persons.filter(person => person.id != id ))
+        })
+    }    
   }
 
   const addContact = (event) => {
     event.preventDefault()
-    const newContact = {
-      name: newName,
-      number: newNumber,
-      id: persons.length + 1
-    }
 
     const isDuplicate = persons.some((current) =>
-      current.name === newName
-    )
+        current.name === newName
+      )
 
     if (isDuplicate) {
-      alert(`"${newName}" has already been added`)
+      const confirmString = 
+          `${newName} is already added to phonebook. \nReplace the older number with a new one?`
+      if (window.confirm(confirmString)) {
+        const modContact = {
+          ...persons.find(person => person.name === newName),
+          number: newNumber
+        }
+        personService
+          .modify(modContact)
+          .then(returnedPerson => {
+            setPersons(persons.map(person => 
+              person.name === returnedPerson.name
+              ? { ...person, number: returnedPerson.number}
+              : person
+              ))
+            setNewName('')
+            setNewNumber('')
+          })
+      }
     } else {
-      setPersons(persons.concat(newContact))
-      setNewName('')
-      setNewNumber('')
+    const newContact = {
+      name: newName,
+      number: newNumber
     }
+      personService
+        .create(newContact)
+        .then(returnedPerson => {
+          setPersons(persons.concat(returnedPerson))
+          setNewName('')
+          setNewNumber('')
+        })
+    }
+
+    
   }
 
 
@@ -70,7 +106,11 @@ const App = () => {
       />
 
       <h2>Contacts</h2>
-      <Persons persons={persons} filter={filterText} />
+      <Persons 
+        persons={persons} 
+        filter={filterText} 
+        deletePersonOf = {deletePersonOf}
+      />
     </div>
   )
 }

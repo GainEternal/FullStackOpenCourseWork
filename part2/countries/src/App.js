@@ -13,7 +13,6 @@ const App = () => {
   const [api_url, setApi_url] = useState(
     `https://api.openweathermap.org/data/2.5/weather?q=Washington+DC&units=metric&appid=${api_key}`
     )
-  const [testNum, setTestNum] = useState(0)
 
 
   useEffect(() => {
