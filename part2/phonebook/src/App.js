@@ -40,54 +40,62 @@ const App = () => {
       personService
         .remove(id)
         .then(returned => {
-          setPersons(persons.filter(person => person.id != id ))
+          setPersons(persons.filter(person => person.id != id))
         })
-    }    
+    }
+  }
+
+  const modifyContactNumber = () => {
+    const modContact = {
+      ...persons.find(person => person.name === newName),
+      number: newNumber
+    }
+    personService
+      .modify(modContact)
+      .then(returnedPerson => {
+        setPersons(persons.map(person => person.name === returnedPerson.name
+          ? { ...person, number: returnedPerson.number }
+          : person
+        ))
+        setNewName('')
+        setNewNumber('')
+      })
+  }
+
+  const createContact = () => {
+    const newContact = {
+      name: newName,
+      number: newNumber
+    }
+    personService
+      .create(newContact)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+      })
+  }
+  
+  const isDuplicate = () => {
+    return persons.some((current) => current.name === newName)
   }
 
   const addContact = (event) => {
     event.preventDefault()
 
-    const isDuplicate = persons.some((current) =>
-        current.name === newName
-      )
-
-    if (isDuplicate) {
-      const confirmString = 
-          `${newName} is already added to phonebook. \nReplace the older number with a new one?`
+    if (isDuplicate()) {
+      const confirmString =
+        `${newName} is already added to phonebook. \nReplace the older number with a new one?`
       if (window.confirm(confirmString)) {
-        const modContact = {
-          ...persons.find(person => person.name === newName),
-          number: newNumber
-        }
-        personService
-          .modify(modContact)
-          .then(returnedPerson => {
-            setPersons(persons.map(person => 
-              person.name === returnedPerson.name
-              ? { ...person, number: returnedPerson.number}
-              : person
-              ))
-            setNewName('')
-            setNewNumber('')
-          })
+        modifyContactNumber()
       }
     } else {
-    const newContact = {
-      name: newName,
-      number: newNumber
+      createContact()
     }
-      personService
-        .create(newContact)
-        .then(returnedPerson => {
-          setPersons(persons.concat(returnedPerson))
-          setNewName('')
-          setNewNumber('')
-        })
-    }
-
-    
   }
+
+  const personsToShow =
+    persons.filter((person) => person.name.toLowerCase().includes(filterText))
 
 
   return (
@@ -97,7 +105,7 @@ const App = () => {
       <Filter filterText={filterText} handleFilter={handleFilterChange} />
 
       <h2>Add New Contact</h2>
-      <NewContact 
+      <NewContact
         newName={newName}
         handleName={handleNameChange}
         newNumber={newNumber}
@@ -106,10 +114,9 @@ const App = () => {
       />
 
       <h2>Contacts</h2>
-      <Persons 
-        persons={persons} 
-        filter={filterText} 
-        deletePersonOf = {deletePersonOf}
+      <Persons
+        persons={personsToShow}
+        deletePersonOf={deletePersonOf}
       />
     </div>
   )

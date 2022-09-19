@@ -1,8 +1,7 @@
-const Persons = ({ persons, filter, deletePersonOf }) => 
+const Persons = ({ persons, deletePersonOf }) => 
   <div>
     <ul>
       {persons
-        .filter((person) => person.name.toLowerCase().includes(filter))
         .map((person) => <Person 
           key={person.id} 
           person={person}
