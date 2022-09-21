@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
 
 import Filter from "./components/Filter"
 import NewContact from "./components/NewContact"
 import Persons from "./components/Persons"
+import Notification from "./components/Notification"
 import personService from "./services/persons"
 
 const App = () => {
@@ -11,6 +11,8 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
   const [filterText, setFilterText] = useState('')
+  const [notifyMessage, setConfirmMessage] = useState(null)
+  const [messageType, setMessageType] = useState('')
 
   useEffect(() => {
     if (!persons.length) {
@@ -59,6 +61,11 @@ const App = () => {
         ))
         setNewName('')
         setNewNumber('')
+
+        displayMessage(`Modified ${returnedPerson.name}`, '')
+      })
+      .catch(error => {
+        displayMessage(`Information of ${newName} has already been removed from server`, 'error')
       })
   }
 
@@ -73,13 +80,19 @@ const App = () => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
+
+        displayMessage(`Added ${returnedPerson.name}`, '')
       })
   }
-  
-  const isDuplicate = () => {
-    return persons.some((current) => current.name === newName)
-  }
 
+  const displayMessage = (message, type) => {
+    setConfirmMessage(message)
+    setMessageType(type)
+    setTimeout(() => {
+      setConfirmMessage(null)
+    }, 5000)
+  } 
+  
   const addContact = (event) => {
     event.preventDefault()
 
@@ -94,6 +107,10 @@ const App = () => {
     }
   }
 
+  const isDuplicate = () => {
+    return persons.some((current) => current.name === newName)
+  }
+
   const personsToShow =
     persons.filter((person) => person.name.toLowerCase().includes(filterText))
 
@@ -101,6 +118,8 @@ const App = () => {
   return (
     <div>
       <h1>Phonebook</h1>
+
+      <Notification message={notifyMessage} type={messageType} />
 
       <Filter filterText={filterText} handleFilter={handleFilterChange} />
 
