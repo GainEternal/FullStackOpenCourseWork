@@ -42,7 +42,7 @@ const App = () => {
       personService
         .remove(id)
         .then(returned => {
-          setPersons(persons.filter(person => person.id != id))
+          setPersons(persons.filter(person => person.id !== id))
         })
     }
   }
@@ -61,11 +61,14 @@ const App = () => {
         ))
         setNewName('')
         setNewNumber('')
-
         displayMessage(`Modified ${returnedPerson.name}`, '')
       })
       .catch(error => {
-        displayMessage(`Information of ${newName} has already been removed from server`, 'error')
+        if ('error' in error.response.data) {
+          displayMessage(error.response.data.error, 'error')
+        } else {
+          displayMessage(`Information of ${newName} has already been removed from server`, 'error')
+        }
       })
   }
 
@@ -83,6 +86,11 @@ const App = () => {
 
         displayMessage(`Added ${returnedPerson.name}`, '')
       })
+      .catch(error => {
+        console.log(error);
+        console.log(error.response.data.error);
+        displayMessage(error.response.data.error, 'error')
+      })
   }
 
   const displayMessage = (message, type) => {
@@ -96,7 +104,7 @@ const App = () => {
   const addContact = (event) => {
     event.preventDefault()
 
-    if (isDuplicate()) {
+    if (contactAlreadyExists()) {
       const confirmString =
         `${newName} is already added to phonebook. \nReplace the older number with a new one?`
       if (window.confirm(confirmString)) {
@@ -107,7 +115,7 @@ const App = () => {
     }
   }
 
-  const isDuplicate = () => {
+  const contactAlreadyExists = () => {
     return persons.some((current) => current.name === newName)
   }
 
