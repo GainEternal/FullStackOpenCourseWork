@@ -22,6 +22,7 @@ const App = () => {
           setPersons(persons.concat(initialContacts))
         })
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleNameChange = (event) => {
