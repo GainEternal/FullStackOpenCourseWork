@@ -3,25 +3,8 @@ const app = express()
 const config = require('./utils/config')
 const logger = require('./utils/logger')
 const cors = require('cors')
-const mongoose = require('mongoose')
 
-const blogSchema = new mongoose.Schema({
-  title: String,
-  author: String,
-  url: String,
-  likes: Number
-})
-
-const Blog = mongoose.model('Blog', blogSchema)
-
-const mongoUrl = process.env.MONGODB_URI
-logger.info(`connecting to ${mongoUrl}`)
-
-mongoose.connect(mongoUrl)
-  .then(() => {
-    logger.info('connected to MongoDB')
-  })
-  .catch((err) => logger.error('error connecting to MongoDB:', err.message))
+const Blog = require('./models/blog')
 
 app.use(cors())
 app.use(express.json())

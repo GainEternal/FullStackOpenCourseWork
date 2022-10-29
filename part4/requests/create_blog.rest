@@ -2,11 +2,9 @@ POST http://localhost:3003/api/blogs HTTP/1.1
 Content-Type: application/json
 
 {
-    "name": "Fredrick Van Blot",
-    "number": "55-457524864",
-    "title": "Template Literals",
-    "author": "Modzilla",
-    "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals",
+    "title": "What is NPL",
+    "author": "NPLers",
+    "url": "https://noplaceleft.net/start-here/#whatisnpl",
     "likes": 10
 }
 
