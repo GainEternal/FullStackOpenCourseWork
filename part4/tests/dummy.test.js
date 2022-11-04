@@ -111,5 +111,27 @@ describe('favoriteBlog', () => {
     } 
     expect(listHelper.favoriteBlog(blogs)).toEqual(output)
   })
+})
 
+describe('mostBlogs', () => {
+
+  test('of empty list', () => {
+    expect(listHelper.mostBlogs(emptyList)).toEqual({})
+  })
+
+  test('of one blog', () => {
+    const output = {
+      author: 'Michael Chan',
+      blogs: 1,
+    } 
+    expect(listHelper.mostBlogs(listWithOneBlog)).toEqual(output)
+  })
+
+  test('of many blogs', () => {
+    const output = {
+      author: 'Robert C. Martin',
+      blogs: 3,
+    } 
+    expect(listHelper.mostBlogs(blogs)).toEqual(output)
+  })
 })
