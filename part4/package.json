@@ -4,18 +4,20 @@
   "description": "App for recording blogs and associated information",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "NODE_ENV=production node index.js",
+    "dev": "NODE_ENV=development nodemon index.js",
     "lint": "eslint .",
-    "test": "jest --verbose"
+    "test": "NODE_ENV=test jest --verbose --runInBand --forceExit"
   },
   "author": "Macklin Bolton",
   "license": "MIT",
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "elint": "^2.0.1",
     "eslint": "^8.26.0",
     "jest": "^29.2.2",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "supertest": "^6.3.1"
   },
   "dependencies": {
     "cors": "^2.8.5",
