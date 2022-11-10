@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
+const _ = require('lodash')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
@@ -39,10 +40,9 @@ describe('Blog HTTP GET request', () => {
 
 
 
-describe('blog HTTP POST request', () => {
-  
+describe.only('blog HTTP POST request', () => {
 
-  test('returns expected header', async () => {
+  test('adds blog to list', async () => {
     const newBlog = {
       title: '3 Circles',
       author: 'Raymond Vaughn',
@@ -60,12 +60,25 @@ describe('blog HTTP POST request', () => {
     const urls = response.body.map( r => r.url)
 
     expect(response.body).toHaveLength(helper.initialBlogs.length + 1)
-    expect(urls).toContain('https://www.youtube.com/watch?v=NYU-a2wIbxc&t=74s&ab_channel=RaymondVaughn')
+    expect(urls).toContain(newBlog.url)
   })
 
-  /* test('creates new blog', () => {
+  test('with no likes creates blog with likes equal to 0', async () => {
+    const newBlogNoLikes = {
+      title: '3-2-1: The Story of God, the World, and You',
+      author: 'Justin Taylor',
+      url: 'https://www.thegospelcoalition.org/blogs/justin-taylor/3-2-1-the-story-of-god-the-world-and-you-a-simple-gospel-explanation/'
+    }    
 
-  }) */
+    await api
+      .post('/api/blogs')
+      .send(newBlogNoLikes)
+
+    const response = await api.get('/api/blogs')
+    const pulledNewBlog = _.find(response.body, (b) => (b.url === newBlogNoLikes.url))
+
+    expect(pulledNewBlog.likes).toBe(0)
+  })
 })
 
 

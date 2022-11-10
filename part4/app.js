@@ -22,7 +22,10 @@ app.use(express.static('build'))
 app.use(express.json())
 morgan.token('data', (req) => JSON.stringify(req.body))
 const morganString = ':method :url :status :res[content-length] - :response-time ms :data'
-app.use(morgan(morganString))
+if (process.env.NODE_ENV !== 'test') {
+  app.use(morgan(morganString))
+}
+
 
 app.use('/api/blogs', blogRouter)
 
