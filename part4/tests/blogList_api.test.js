@@ -40,7 +40,7 @@ describe('Blog HTTP GET request', () => {
 
 
 
-describe.only('blog HTTP POST request', () => {
+describe('blog HTTP POST request', () => {
 
   test('adds blog to list', async () => {
     const newBlog = {
@@ -56,10 +56,10 @@ describe.only('blog HTTP POST request', () => {
       .expect(201)
       .expect('Content-Type', /application\/json/)
 
-    const response = await api.get('/api/blogs')
-    const urls = response.body.map( r => r.url)
+    const blogs = await helper.blogsInDb()
+    const urls = blogs.map( r => r.url)
 
-    expect(response.body).toHaveLength(helper.initialBlogs.length + 1)
+    expect(blogs).toHaveLength(helper.initialBlogs.length + 1)
     expect(urls).toContain(newBlog.url)
   })
 
@@ -74,10 +74,34 @@ describe.only('blog HTTP POST request', () => {
       .post('/api/blogs')
       .send(newBlogNoLikes)
 
-    const response = await api.get('/api/blogs')
-    const pulledNewBlog = _.find(response.body, (b) => (b.url === newBlogNoLikes.url))
+    const blogs = await helper.blogsInDb()
+    const pulledNewBlog = _.find(blogs, (b) => (b.url === newBlogNoLikes.url))
 
     expect(pulledNewBlog.likes).toBe(0)
+  })
+  
+  test('with missing title then bad requrest is returned', async () => {
+    const newBlogNoTitle = {
+      author: 'Justin Taylor',
+      url: 'https://www.thegospelcoalition.org/blogs/justin-taylor/3-2-1-the-story-of-god-the-world-and-you-a-simple-gospel-explanation/'
+    }    
+
+    await api
+      .post('/api/blogs')
+      .send(newBlogNoTitle)
+      .expect(400)
+  })
+
+  test('with missing url then bad requrest is returned', async () => {
+    const newBlogNoTitle = {
+      title: '3-2-1: The Story of God, the World, and You',
+      author: 'Justin Taylor',
+    }    
+
+    await api
+      .post('/api/blogs')
+      .send(newBlogNoTitle)
+      .expect(400)
   })
 })
 
