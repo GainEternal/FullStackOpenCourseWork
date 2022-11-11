@@ -19,7 +19,14 @@ blogRouter.post('/', async (request, response) => {
   } else {
     response.status(400).end()
   }
-  
+})
+
+blogRouter.delete('/', async (request, response) => {
+  response.status(400).end()
+})
+
+blogRouter.delete('/:id', async (request, response) => {
+  response.status(400).end()
 })
 
 module.exports = blogRouter

@@ -105,6 +105,27 @@ describe('Creating a new blog', () => {
   })
 })
 
+describe.only('Deleting a single blog post', () => {
+
+  test('fails with status code 400 if blank id', async () => {
+    await api
+      .delete('/api/blogs')
+      .expect(400)
+    
+    await api
+      .delete('/api/blogs/')
+      .expect(400)
+  })
+
+  test('fails with status code 400 if id does not exist', async () => {
+    await api
+      .delete('/api/blogs/1')
+      .expect(400)
+  })
+
+  test('')
+})
+
 
 
 afterAll(() => {
