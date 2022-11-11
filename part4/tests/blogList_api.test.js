@@ -117,13 +117,20 @@ describe.only('Deleting a single blog post', () => {
       .expect(400)
   })
 
-  test('fails with status code 400 if id does not exist', async () => {
-    await api
+  test('fails with status code 400 and error message, if id is malformatted', async () => {
+    const response = await api
       .delete('/api/blogs/1')
       .expect(400)
+    
+    expect(response.body).toEqual({'error': 'malformatted id'})
   })
 
-  test('')
+  test('succeeds with status code 204', async () => {
+    const firstBlogId = helper.initialBlogs[0]._id
+    await api
+      .delete(`/api/blogs/${firstBlogId}`)
+      .expect(204)
+  })
 })
 
 
