@@ -16,7 +16,7 @@ beforeEach(async () => {
   await Promise.all(promiseArray)
 })
 
-describe('Blog HTTP GET request', () => {
+describe('When there are initially some blogs saved', () => {
 
   test('blogList is returned as json', async () => {
     await api
@@ -25,22 +25,22 @@ describe('Blog HTTP GET request', () => {
       .expect('Content-Type', /application\/json/)
   })
 
-  test('there are six notes', async () => {
+  test('all notes are returned', async () => {
     const response = await api.get('/api/blogs')
 
-    expect(response.body).toHaveLength(6)
+    expect(response.body).toHaveLength(helper.initialBlogs.length)
   })
+})
 
-  test('when blogList is returned', async () => {
+describe('When viewing a blog', () => {
+  test('the id fields are correctly transformed', async () => {
     const response = await api.get('/api/blogs')
 
     expect(response.body[0].id).toBeDefined()
   })
 })
-
-
-
-describe('blog HTTP POST request', () => {
+  
+describe('Creating a new blog', () => {
 
   test('adds blog to list', async () => {
     const newBlog = {
@@ -80,7 +80,7 @@ describe('blog HTTP POST request', () => {
     expect(pulledNewBlog.likes).toBe(0)
   })
   
-  test('with missing title then bad requrest is returned', async () => {
+  test('fails with status code 400 if missing title', async () => {
     const newBlogNoTitle = {
       author: 'Justin Taylor',
       url: 'https://www.thegospelcoalition.org/blogs/justin-taylor/3-2-1-the-story-of-god-the-world-and-you-a-simple-gospel-explanation/'
@@ -92,7 +92,7 @@ describe('blog HTTP POST request', () => {
       .expect(400)
   })
 
-  test('with missing url then bad requrest is returned', async () => {
+  test('fails with status code 400 if missing url', async () => {
     const newBlogNoTitle = {
       title: '3-2-1: The Story of God, the World, and You',
       author: 'Justin Taylor',
