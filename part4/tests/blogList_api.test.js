@@ -105,17 +105,8 @@ describe('Creating a new blog', () => {
   })
 })
 
-describe.only('Deleting a single blog post', () => {
 
-  test('fails with status code 400 if blank id', async () => {
-    await api
-      .delete('/api/blogs')
-      .expect(400)
-    
-    await api
-      .delete('/api/blogs/')
-      .expect(400)
-  })
+describe('Deleting a single blog post', () => {
 
   test('fails with status code 400 and error message, if id is malformatted', async () => {
     const response = await api
@@ -125,14 +116,51 @@ describe.only('Deleting a single blog post', () => {
     expect(response.body).toEqual({'error': 'malformatted id'})
   })
 
-  test('succeeds with status code 204', async () => {
-    const firstBlogId = helper.initialBlogs[0]._id
+  test('succeeds with status code 204 if id is valid', async () => {
+    const blogToDelete = helper.initialBlogs[0]._id
     await api
-      .delete(`/api/blogs/${firstBlogId}`)
+      .delete(`/api/blogs/${blogToDelete}`)
       .expect(204)
+
+    const blogsAtEnd = await helper.blogsInDb()
+    const urls = blogsAtEnd.map(b => b.url)
+    
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
+    expect(urls).not.toContain(blogToDelete.url)
   })
 })
 
+
+describe('Updating the likes for a blog post', () => {
+
+  test('fails with status code 400 and error message, if id is malformatted', async () => {
+    const response = await api
+      .put('/api/blogs/1')
+      .expect(400)
+    
+    expect(response.body).toEqual({'error': 'malformatted id'})
+  })
+
+  test('succeeds with status code 200 if id is valid', async () => {
+    const blogsInDb = await helper.blogsInDb()
+    const originalBlog = blogsInDb[0]
+    const updatedBlog = {...originalBlog, likes: originalBlog.likes + 1}
+
+    const response = await api
+      .put(`/api/blogs/${updatedBlog.id}`)
+      .send(updatedBlog)
+      .expect(200)
+
+    const returnedBlog = response.body
+    const blogsAtEnd = await helper.blogsInDb()
+    const blogExpectedUpdated = _.find(blogsAtEnd, (b) => b.id === originalBlog.id)
+
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length)
+    expect(returnedBlog).toEqual(updatedBlog)
+    expect(blogExpectedUpdated.likes).toBe(originalBlog.likes + 1)
+  })
+  
+})
 
 
 afterAll(() => {
