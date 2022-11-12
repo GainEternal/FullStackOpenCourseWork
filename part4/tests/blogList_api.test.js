@@ -16,6 +16,7 @@ beforeEach(async () => {
   await Promise.all(promiseArray)
 })
 
+
 describe('When there are initially some blogs saved', () => {
 
   test('blogList is returned as json', async () => {
@@ -40,6 +41,7 @@ describe('When viewing a blog', () => {
   })
 })
   
+
 describe('Creating a new blog', () => {
 
   test('adds blog to list', async () => {
@@ -150,6 +152,7 @@ describe('Updating the likes for a blog post', () => {
       .put(`/api/blogs/${updatedBlog.id}`)
       .send(updatedBlog)
       .expect(200)
+      .expect('Content-Type', /application\/json/)
 
     const returnedBlog = response.body
     const blogsAtEnd = await helper.blogsInDb()
