@@ -3,11 +3,13 @@ const express = require('express')
 require('express-async-errors')
 const app = express()
 const cors = require('cors')
-const blogRouter = require('./controllers/blog')
-const middleware = require('./utils/middleware.js')
 var morgan = require('morgan')
 const logger = require('./utils/logger')
 const mongoose = require('mongoose')
+
+const blogsRouter = require('./controllers/blog')
+const usersRouter = require('./controllers/user')
+const middleware = require('./utils/middleware')
 
 
 logger.info(`connecting to ${config.MONGODB_URI}`)
@@ -28,7 +30,8 @@ if (process.env.NODE_ENV !== 'test') {
 }
 
 
-app.use('/api/blogs', blogRouter)
+app.use('/api/blogs', blogsRouter)
+app.use('/api/users', usersRouter)
 
 app.use(middleware.unknownEndpoint)
 app.use(middleware.errorHandler)

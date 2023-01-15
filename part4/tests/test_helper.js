@@ -1,4 +1,6 @@
 const Blog = require('../models/blog')
+const User = require('../models/user')
+const bcrypt = require('bcrypt')
 
 const initialBlogs = [
   {
@@ -51,6 +53,18 @@ const initialBlogs = [
   }  
 ]
 
+const setupInitialBlogs = async () => {
+  const blogObject = initialBlogs
+    .map(blog => new Blog(blog))
+  const promiseArray = blogObject.map(blog => blog.save())
+  await Promise.all(promiseArray)
+}
+
+const blogsInDb = async () => {
+  const blogs = await Blog.find({})
+  return blogs.map(blog => blog.toJSON())
+}
+
 const nonExistingId = async () => {
   const blog = new Blog({ title: 'willremovethissoon', url: 'www.google.com' })
   await blog.save()
@@ -59,11 +73,39 @@ const nonExistingId = async () => {
   return blog._id.toString()
 }
 
-const blogsInDb = async () => {
-  const blogs = await Blog.find({})
-  return blogs.map(blog => blog.toJSON())
+const initialUsers = [
+  {
+    _id: '5a422a851b54a676234d17f7',
+    username: 'HidingBug',
+    password: 'UnderRock',
+    name: 'Fredrick',
+    __v: 0
+  },
+  {
+    _id: '5a422aa71b54a676234d17f8',
+    username: 'GiantSquirrel',
+    password: 'Flying',
+    name: 'Sir Henry',
+    __v: 0
+  }
+]
+
+const setupInitialUsers = async () => {
+  const userObjectPromiseArray = initialUsers
+    .map(async user => new User({
+      ...user,
+      passwordHash: await bcrypt.hash(user.password, 10)
+    }))
+  const userObject = await Promise.all(userObjectPromiseArray)
+  const promiseArray = userObject.map(user => user.save())
+  await Promise.all(promiseArray)
+}
+
+const usersInDb = async () => {
+  const users = await User.find({})
+  return users.map(user => user.toJSON())
 }
 
 module.exports = {
-  initialBlogs, nonExistingId, blogsInDb
+  initialBlogs, setupInitialBlogs, blogsInDb, nonExistingId, initialUsers, setupInitialUsers, usersInDb
 }
