@@ -190,12 +190,16 @@ describe.only('When there are initially some users in the db', () => {
   describe('Creating a user', () => {
 
     test('fails with status code 400 if missing body', async () => {
-      await api
+      const response = await api
         .post('/api/users')
         .expect(400)
+
+      expect(response.body.error).toContain('A new user must have a valid username, password, and name')
     })
 
     test('succeeds with user returned and user exists in database', async () => {
+      const usersAtStart = await helper.usersInDb()
+
       const newUser = {
         username: 'Alpha',
         password: 'Beta',
@@ -215,11 +219,56 @@ describe.only('When there are initially some users in the db', () => {
       expect(returnedUsername).toBe(newUser.username)
       expect(returnedName).toBe(newUser.name)
 
-      const users = await helper.usersInDb()
-      const usernames = users.map(u => u.username)
+      const usersAtEnd = await helper.usersInDb()
+      expect(usersAtEnd).toHaveLength(usersAtStart.length + 1)
 
-      expect(users).toHaveLength(helper.initialUsers.length + 1)
+      const usernames = usersAtEnd.map(u => u.username)
       expect(usernames).toContain(newUser.username)
+    })
+
+    test('fails when username is shorter than 3 characters', async () => {
+      const newUser = {
+        username: 'Al',
+        password: 'Beta',
+        name: 'Gamma Delta'
+      }
+
+      const response = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+
+      expect(response.body.error).toContain('is shorter than the minimum allowed length (3)')
+    })
+
+    test('fails when username already exists in db', async () => {
+      const newUser = {
+        username: 'HidingBug',
+        password: 'Beta',
+        name: 'Gamma Delta'
+      }
+
+      const response = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+
+      expect(response.body.error).toContain('Username already exists. Choose a unique username')
+    })
+
+    test('fails when password is shorter than 3 characters', async () => {
+      const newUser = {
+        username: 'Alpha',
+        password: 'Be',
+        name: 'Gamma Delta'
+      }
+
+      const response = await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(400)
+
+      expect(response.body.error).toContain('is shorter than the minimum allowed length (3)')
     })
   })
 })

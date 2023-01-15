@@ -4,6 +4,23 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: true,
+    minLength: 3,
+    validate: [
+      {
+        validator: (username) => {
+          return User.findOne({username})
+            .then(result => {
+              if (result == null) {
+                return true
+              } else {
+                return false
+              }
+            })
+            .catch(err => console.log(err.message))
+        },
+        msg: 'Username already exists. Choose a unique username.'
+      }
+    ]
   },
   passwordHash: {
     type: String,
@@ -23,5 +40,5 @@ userSchema.set('toJSON', {
     delete returnedObject.__v
   }
 })
-
-module.exports = mongoose.model('User', userSchema)
+const User = mongoose.model('User', userSchema)
+module.exports = User

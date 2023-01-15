@@ -15,8 +15,11 @@ UsersRouter.get('/', async (request, response) => {
 UsersRouter.post('/', async (request, response) => {
   const { username, password, name } = request.body
 
-  if (username && password && name) {
+  
+  if (password && password.length < 3) {
+    response.status(400).json({'error': 'The password is shorter than the minimum allowed length (3)'})
 
+  } else if (username && name) {
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
@@ -32,9 +35,9 @@ UsersRouter.post('/', async (request, response) => {
     } else {
       response.status(400).end()
     }
-  }
-  else {
-    response.status(400).end()
+    
+  } else {
+    response.status(400).json({'error': 'A new user must have a valid username, password, and name'})
   }
 })
 
