@@ -2,20 +2,14 @@ const UsersRouter = require('express').Router()
 const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
-/* UsersRouter.get('/', async (request, response) => {
-  const blogs = await User.find({})
-  response.json(blogs)
-}) */
-
 UsersRouter.get('/', async (request, response) => {
   const users = await User.find({})
-  response.status(200).json(users)
+  response.json(users)
 })
   
 UsersRouter.post('/', async (request, response) => {
   const { username, password, name } = request.body
 
-  
   if (password && password.length < 3) {
     response.status(400).json({'error': 'The password is shorter than the minimum allowed length (3)'})
 
@@ -35,7 +29,7 @@ UsersRouter.post('/', async (request, response) => {
     } else {
       response.status(400).end()
     }
-    
+
   } else {
     response.status(400).json({'error': 'A new user must have a valid username, password, and name'})
   }

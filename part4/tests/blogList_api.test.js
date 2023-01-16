@@ -167,9 +167,12 @@ describe('When there are initially some blogs saved', () => {
 
 describe.only('When there are initially some users in the db', () => {
 
+  let usersAtStart
+
   beforeEach(async () => {
     await User.deleteMany({})
     await helper.setupInitialUsers()
+    usersAtStart = await helper.usersInDb()
   })
 
   test('Viewing the users succeeds and returns all notes with username, name, and id', async () => {
@@ -189,16 +192,7 @@ describe.only('When there are initially some users in the db', () => {
 
   describe('Creating a user', () => {
 
-    test('fails with status code 400 if missing body', async () => {
-      const response = await api
-        .post('/api/users')
-        .expect(400)
-
-      expect(response.body.error).toContain('A new user must have a valid username, password, and name')
-    })
-
     test('succeeds with user returned and user exists in database', async () => {
-      const usersAtStart = await helper.usersInDb()
 
       const newUser = {
         username: 'Alpha',
@@ -226,49 +220,65 @@ describe.only('When there are initially some users in the db', () => {
       expect(usernames).toContain(newUser.username)
     })
 
-    test('fails when username is shorter than 3 characters', async () => {
-      const newUser = {
-        username: 'Al',
-        password: 'Beta',
-        name: 'Gamma Delta'
-      }
+    describe('fails', () => {
 
-      const response = await api
-        .post('/api/users')
-        .send(newUser)
-        .expect(400)
+      test('with status code 400 if missing body', async () => {
+        const response = await api
+          .post('/api/users')
+          .expect(400)
 
-      expect(response.body.error).toContain('is shorter than the minimum allowed length (3)')
-    })
+        expect(response.body.error).toContain('A new user must have a valid username, password, and name')
+      })
 
-    test('fails when username already exists in db', async () => {
-      const newUser = {
-        username: 'HidingBug',
-        password: 'Beta',
-        name: 'Gamma Delta'
-      }
+      test('when username is shorter than 3 characters', async () => {
+        const newUser = {
+          username: 'Al',
+          password: 'Beta',
+          name: 'Gamma Delta'
+        }
 
-      const response = await api
-        .post('/api/users')
-        .send(newUser)
-        .expect(400)
+        const response = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
 
-      expect(response.body.error).toContain('Username already exists. Choose a unique username')
-    })
+        expect(response.body.error).toContain('is shorter than the minimum allowed length (3)')
+      })
 
-    test('fails when password is shorter than 3 characters', async () => {
-      const newUser = {
-        username: 'Alpha',
-        password: 'Be',
-        name: 'Gamma Delta'
-      }
+      test('when username already exists in db', async () => {
+        const newUser = {
+          username: 'HidingBug',
+          password: 'Beta',
+          name: 'Gamma Delta'
+        }
 
-      const response = await api
-        .post('/api/users')
-        .send(newUser)
-        .expect(400)
+        const response = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
 
-      expect(response.body.error).toContain('is shorter than the minimum allowed length (3)')
+        expect(response.body.error).toContain('Username already exists. Choose a unique username')
+      })
+
+      test('when password is shorter than 3 characters', async () => {
+        const newUser = {
+          username: 'Alpha',
+          password: 'Be',
+          name: 'Gamma Delta'
+        }
+
+        const response = await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(400)
+
+        expect(response.body.error).toContain('is shorter than the minimum allowed length (3)')
+      })
+
+      afterEach(async () => {
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd).toEqual(usersAtStart)
+      })
     })
   })
 })
