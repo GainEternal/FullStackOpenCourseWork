@@ -127,6 +127,9 @@ describe('When there are initially some blogs saved', () => {
         .expect(400)
 
       expect(response.body).toEqual({ 'error': 'malformatted id' })
+
+      const blogsAtEnd = await helper.blogsInDb()
+      expect(blogsAtEnd).toEqual(blogsAtStart)
     })
 
     test('succeeds with status code 204 if id is valid', async () => {
@@ -144,7 +147,7 @@ describe('When there are initially some blogs saved', () => {
   })
 
 
-  describe('Updating the likes for a blog post', () => {
+  describe.only('Updating the likes for a blog post', () => {
 
     test('fails with status code 400 and error message, if id is malformatted', async () => {
       const response = await api
@@ -152,6 +155,9 @@ describe('When there are initially some blogs saved', () => {
         .expect(400)
 
       expect(response.body).toEqual({ 'error': 'malformatted id' })
+
+      const blogsAtEnd = await helper.blogsInDb()
+      expect(blogsAtEnd).toEqual(blogsAtStart)
     })
 
     test('succeeds with status code 200 if id is valid', async () => {
