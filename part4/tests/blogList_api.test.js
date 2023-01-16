@@ -12,10 +12,12 @@ const helper = require('./test_helper')
 
 describe('When there are initially some blogs saved', () => {
 
-  beforeEach(async () => {
+  let blogsAtStart
 
+  beforeEach(async () => {
     await Blog.deleteMany({})
     await helper.setupInitialBlogs()
+    blogsAtStart = await helper.blogsInDb()
   })
 
   describe('Viewing the bloglist', () => {
@@ -79,28 +81,40 @@ describe('When there are initially some blogs saved', () => {
       expect(pulledNewBlog.likes).toBe(0)
     })
 
-    test('fails with status code 400 if missing title', async () => {
-      const newBlogNoTitle = {
-        author: 'Justin Taylor',
-        url: 'https://www.thegospelcoalition.org/blogs/justin-taylor/3-2-1-the-story-of-god-the-world-and-you-a-simple-gospel-explanation/'
-      }
+    describe('fails with status code 400', () => {
 
-      await api
-        .post('/api/blogs')
-        .send(newBlogNoTitle)
-        .expect(400)
-    })
+      test('if missing title', async () => {
+        const newBlogNoTitle = {
+          author: 'Justin Taylor',
+          url: 'https://www.thegospelcoalition.org/blogs/justin-taylor/3-2-1-the-story-of-god-the-world-and-you-a-simple-gospel-explanation/'
+        }
 
-    test('fails with status code 400 if missing url', async () => {
-      const newBlogNoTitle = {
-        title: '3-2-1: The Story of God, the World, and You',
-        author: 'Justin Taylor',
-      }
+        const response = await api
+          .post('/api/blogs')
+          .send(newBlogNoTitle)
+          .expect(400)
 
-      await api
-        .post('/api/blogs')
-        .send(newBlogNoTitle)
-        .expect(400)
+        expect(response.body.error).toContain('`title` is required.')
+      })
+
+      test('if missing url', async () => {
+        const newBlogNoTitle = {
+          title: '3-2-1: The Story of God, the World, and You',
+          author: 'Justin Taylor',
+        }
+
+        const response = await api
+          .post('/api/blogs')
+          .send(newBlogNoTitle)
+          .expect(400)
+        
+        expect(response.body.error).toContain('`url` is required.')
+      })
+
+      afterEach(async () => {
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toEqual(blogsAtStart)
+      })
     })
   })
 
@@ -165,7 +179,7 @@ describe('When there are initially some blogs saved', () => {
 
 
 
-describe.only('When there are initially some users in the db', () => {
+describe('When there are initially some users in the db', () => {
 
   let usersAtStart
 
