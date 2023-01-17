@@ -51,17 +51,69 @@ describe('When there are initially some blogs saved', () => {
         likes: 21,
       }
 
-      await api
+      const response = await api
         .post('/api/blogs')
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
+
+      expect(Object.keys(response.body)).toEqual(['title', 'author', 'url', 'likes', 'user', 'id'])
+
+      const { 
+        title: returnedTitle, 
+        author: returnedAuthor, 
+        url: returnedUrl,
+        likes: returnedLikes
+      } = response.body
+      expect(returnedTitle).toBe(newBlog.title)
+      expect(returnedAuthor).toBe(newBlog.author)
+      expect(returnedUrl).toBe(newBlog.url)
+      expect(returnedLikes).toBe(newBlog.likes)
 
       const blogs = await helper.blogsInDb()
       const urls = blogs.map(r => r.url)
 
       expect(blogs).toHaveLength(helper.initialBlogs.length + 1)
       expect(urls).toContain(newBlog.url)
+    })
+
+    test.only('adds user to blog from db', async() => {
+      await User.deleteMany({})
+      const newUser = {
+        username: 'Alpha',
+        password: 'Beta',
+        name: 'Gamma Delta'
+      }
+
+      await api
+        .post('/api/users')
+        .send(newUser)
+        .expect(201)
+
+      const savedUser = await User.findOne({})
+      console.log('saved User')
+      console.log(savedUser);
+      console.log(typeof(savedUser));
+
+      const newBlog = {
+        title: '3 Circles',
+        author: 'Raymond Vaughn',
+        url: 'https://www.youtube.com/watch?v=NYU-a2wIbxc&t=74s&ab_channel=RaymondVaughn',
+        likes: 21,
+      }
+      
+      const response = await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(201)
+
+      const { user } = response.body
+      console.log('User')
+      console.log(user);
+      console.log(typeof(user));
+      expect(user).toBe(savedUser._id.toJSON())
+
+
     })
 
     test('with no likes creates blog with likes equal to 0', async () => {
@@ -147,7 +199,7 @@ describe('When there are initially some blogs saved', () => {
   })
 
 
-  describe.only('Updating the likes for a blog post', () => {
+  describe('Updating the likes for a blog post', () => {
 
     test('fails with status code 400 and error message, if id is malformatted', async () => {
       const response = await api
@@ -229,7 +281,6 @@ describe('When there are initially some users in the db', () => {
       expect(Object.keys(response.body)).toEqual(['username', 'name', 'id'])
 
       const { username: returnedUsername, name: returnedName } = response.body
-
       expect(returnedUsername).toBe(newUser.username)
       expect(returnedName).toBe(newUser.name)
 

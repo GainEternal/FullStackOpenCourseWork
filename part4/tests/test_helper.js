@@ -78,14 +78,14 @@ const initialUsers = [
     _id: '5a422a851b54a676234d17f7',
     username: 'HidingBug',
     password: 'UnderRock',
-    name: 'Fredrick',
+    name: 'Fredrick Garfunckle',
     __v: 0
   },
   {
     _id: '5a422aa71b54a676234d17f8',
     username: 'GiantSquirrel',
     password: 'Flying',
-    name: 'Sir Henry',
+    name: 'Sir Henry Gratias',
     __v: 0
   }
 ]
