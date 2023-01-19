@@ -3,17 +3,22 @@ const bcrypt = require('bcrypt')
 const User = require('../models/user')
 
 UsersRouter.get('/', async (request, response) => {
-  const users = await User.find({})
+  const users = await User.find({}).populate('blogs', { title: 1, author: 1, url: 1 })
   response.json(users)
 })
   
 UsersRouter.post('/', async (request, response) => {
   const { username, password, name } = request.body
 
-  if (password && password.length < 3) {
-    response.status(400).json({'error': 'The password is shorter than the minimum allowed length (3)'})
+  const existingUser = await User.findOne({ username })
 
-  } else if (username && name) {
+  if (!username || !password || !name) {
+    response.status(400).json({'error': 'A new user must have a valid username, password, and name'})
+  } else if (password && password.length < 3) {
+    response.status(400).json({'error': 'The password is shorter than the minimum allowed length (3)'})
+  } else if (existingUser) {
+    response.status(400).json({'error': 'Username already exists. Choose a unique username.'})
+  } else {
     const saltRounds = 10
     const passwordHash = await bcrypt.hash(password, saltRounds)
 
@@ -29,9 +34,6 @@ UsersRouter.post('/', async (request, response) => {
     } else {
       response.status(400).end()
     }
-
-  } else {
-    response.status(400).json({'error': 'A new user must have a valid username, password, and name'})
   }
 })
 

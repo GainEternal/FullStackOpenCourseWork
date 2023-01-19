@@ -34,9 +34,9 @@ describe('When there are initially some blogs saved', () => {
 
       expect(response.body).toHaveLength(helper.initialBlogs.length)
 
-      for (const blog of response.body) {
+      response.body.map( blog => {
         expect(blog.id).toBeDefined()
-      }
+      })
 
     })
   })
@@ -77,7 +77,7 @@ describe('When there are initially some blogs saved', () => {
       expect(urls).toContain(newBlog.url)
     })
 
-    test.only('adds user to blog from db', async() => {
+    test('adds user from db to blog, and blog to user', async() => {
       await User.deleteMany({})
       const newUser = {
         username: 'Alpha',
@@ -91,9 +91,6 @@ describe('When there are initially some blogs saved', () => {
         .expect(201)
 
       const savedUser = await User.findOne({})
-      console.log('saved User')
-      console.log(savedUser);
-      console.log(typeof(savedUser));
 
       const newBlog = {
         title: '3 Circles',
@@ -102,18 +99,19 @@ describe('When there are initially some blogs saved', () => {
         likes: 21,
       }
       
-      const response = await api
+      const result = await api
         .post('/api/blogs')
         .send(newBlog)
         .expect(201)
+      
+      const savedBlog = result.body
 
-      const { user } = response.body
-      console.log('User')
-      console.log(user);
-      console.log(typeof(user));
-      expect(user).toBe(savedUser._id.toJSON())
+      const blogUser = savedBlog.user
+      expect(blogUser).toBe(savedUser._id.toJSON())
 
-
+      const userHavingBlog = await User.findById(blogUser)
+      expect(userHavingBlog.blogs).toHaveLength(1)
+      expect(userHavingBlog.blogs[0].toJSON()).toEqual(savedBlog.id)
     })
 
     test('with no likes creates blog with likes equal to 0', async () => {
@@ -256,10 +254,10 @@ describe('When there are initially some users in the db', () => {
     expect(response.body).toHaveLength(helper.initialUsers.length)
 
     const initial_ids = helper.initialUsers.map(user => user._id)
-    for (const user of response.body) {
-      expect(Object.keys(user)).toEqual(['username', 'name', 'id'])
+    response.body.map( user => {
+      expect(Object.keys(user)).toEqual(['username', 'name', 'blogs', 'id'])
       expect(initial_ids).toContainEqual(user.id)
-    }
+    })
   })
 
   describe('Creating a user', () => {
@@ -278,7 +276,7 @@ describe('When there are initially some users in the db', () => {
         .expect(201)
         .expect('Content-Type', /application\/json/)
 
-      expect(Object.keys(response.body)).toEqual(['username', 'name', 'id'])
+      expect(Object.keys(response.body)).toEqual(['username', 'name', 'blogs', 'id'])
 
       const { username: returnedUsername, name: returnedName } = response.body
       expect(returnedUsername).toBe(newUser.username)
@@ -349,6 +347,52 @@ describe('When there are initially some users in the db', () => {
       afterEach(async () => {
         const usersAtEnd = await helper.usersInDb()
         expect(usersAtEnd).toEqual(usersAtStart)
+      })
+    })
+  })
+})
+
+describe('When there are initially both users and blogs posted', () => {
+
+  beforeEach(async () => {
+    await User.deleteMany({})
+    const userPromises = helper.initialUsers.map(async user => {
+      await api
+        .post('/api/users')
+        .send(user)
+    })
+    await Promise.all(userPromises)
+    
+    await Blog.deleteMany({})
+    for (const blog of helper.initialBlogs) {
+      await api
+        .post('/api/blogs')
+        .send(blog)
+    }
+  })
+
+  test('blogs contain user with username, name, and id', async () => {
+
+    const response = await api
+      .get('/api/blogs')
+      .expect(200)
+
+    response.body.map( blog => {
+      expect(Object.keys(blog.user)).toEqual(['username', 'name', 'id'])
+      expect(helper.initialUsers.map(user => user.username)).toContain(blog.user.username)
+    })
+  })
+
+  test('users contain blogs with url, title, author, and id', async () => {
+
+    const userResponse = await api
+      .get('/api/users')
+      .expect(200)
+
+    userResponse.body.map( user => {
+      user.blogs.map( blog => {
+        expect(Object.keys(blog)).toEqual(['title', 'author', 'url', 'id'])
+        expect(helper.initialBlogs.map(blog => blog.url)).toContain(blog.url)
       })
     })
   })

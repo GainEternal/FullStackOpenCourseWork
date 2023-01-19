@@ -3,7 +3,7 @@ const Blog = require('../models/blog')
 const User = require('../models/user')
 
 blogRouter.get('/', async (request, response) => {
-  const blogs = await Blog.find({})
+  const blogs = await Blog.find({}).populate('user', { username: 1, name: 1 })
   response.json(blogs)
 })
   
@@ -17,9 +17,11 @@ blogRouter.post('/', async (request, response) => {
     user: user._id
   })
   
-  const newBlog = await blog.save()
-  if (newBlog) {
-    response.status(201).json(newBlog)
+  const savedBlog = await blog.save()
+  if (savedBlog) {
+    user.blogs = user.blogs.concat(savedBlog._id)
+    await user.save()
+    response.status(201).json(savedBlog)
   } else {
     response.status(400).end()
   }
