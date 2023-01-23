@@ -1,7 +1,8 @@
 const mongoose = require('mongoose')
 const supertest = require('supertest')
 const _ = require('lodash')
-/* const bcrypt = require('bcrypt') */
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
 const app = require('../app')
 const api = supertest(app)
 const Blog = require('../models/blog')
@@ -75,43 +76,6 @@ describe('When there are initially some blogs saved', () => {
 
       expect(blogs).toHaveLength(helper.initialBlogs.length + 1)
       expect(urls).toContain(newBlog.url)
-    })
-
-    test('adds user from db to blog, and blog to user', async() => {
-      await User.deleteMany({})
-      const newUser = {
-        username: 'Alpha',
-        password: 'Beta',
-        name: 'Gamma Delta'
-      }
-
-      await api
-        .post('/api/users')
-        .send(newUser)
-        .expect(201)
-
-      const savedUser = await User.findOne({})
-
-      const newBlog = {
-        title: '3 Circles',
-        author: 'Raymond Vaughn',
-        url: 'https://www.youtube.com/watch?v=NYU-a2wIbxc&t=74s&ab_channel=RaymondVaughn',
-        likes: 21,
-      }
-      
-      const result = await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(201)
-      
-      const savedBlog = result.body
-
-      const blogUser = savedBlog.user
-      expect(blogUser).toBe(savedUser._id.toJSON())
-
-      const userHavingBlog = await User.findById(blogUser)
-      expect(userHavingBlog.blogs).toHaveLength(1)
-      expect(userHavingBlog.blogs[0].toJSON()).toEqual(savedBlog.id)
     })
 
     test('with no likes creates blog with likes equal to 0', async () => {
@@ -352,6 +316,8 @@ describe('When there are initially some users in the db', () => {
   })
 })
 
+
+
 describe('When there are initially both users and blogs posted', () => {
 
   beforeEach(async () => {
@@ -396,7 +362,114 @@ describe('When there are initially both users and blogs posted', () => {
       })
     })
   })
+
+  test('creating a blog adds user from db to blog, and blog to user', async() => {
+    await User.deleteMany({})
+    const newUser = {
+      username: 'Alpha',
+      password: 'Beta',
+      name: 'Gamma Delta'
+    }
+
+    await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(201)
+
+    const savedUser = await User.findOne({})
+
+    const newBlog = {
+      title: '3 Circles',
+      author: 'Raymond Vaughn',
+      url: 'https://www.youtube.com/watch?v=NYU-a2wIbxc&t=74s&ab_channel=RaymondVaughn',
+      likes: 21,
+    }
+    
+    const result = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(201)
+    
+    const savedBlog = result.body
+
+    const blogUser = savedBlog.user
+    expect(blogUser).toBe(savedUser._id.toJSON())
+
+    const userHavingBlog = await User.findById(blogUser)
+    expect(userHavingBlog.blogs).toHaveLength(1)
+    expect(userHavingBlog.blogs[0].toJSON()).toEqual(savedBlog.id)
+  })
 })
+
+
+
+test.only('loginRouter sends back token, username, and name', async () => {
+  const username = 'Henry'
+  const password = 'Kansas'
+  const name = 'York'
+
+  await User.deleteMany({})
+  const user = new User({
+    username,
+    passwordHash: await bcrypt.hash(password, 10),
+    name
+  })
+
+  await user.save()
+
+  const login = {
+    username,
+    password: password
+  }
+
+  const response = await api
+    .post('/api/login')
+    .send(login)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+
+  const returnedLogin = response.body
+
+  expect(Object.keys(response.body)).toEqual(['token', 'username', 'name'])
+  expect(returnedLogin.username).toEqual(username)
+  expect(returnedLogin.name).toEqual(name)
+
+  const decoded = jwt.verify(returnedLogin.token, process.env.SECRET)
+
+  expect(decoded.username).toEqual(username)
+  expect(decoded.id).toEqual(user._id.toString())
+})
+
+test.only('loginRouter fails, if invalid username or password', async () => {
+  const username = 'Henry'
+  const password = 'Kansas'
+  const name = 'York'
+
+  await User.deleteMany({})
+  const user = new User({
+    username,
+    passwordHash: await bcrypt.hash(password, 10),
+    name
+  })
+
+  await user.save()
+
+  const login = {
+    username,
+    password: 'Wrong'
+  }
+
+  const response = await api
+    .post('/api/login')
+    .send(login)
+    .expect(401)
+    .expect('Content-Type', /application\/json/)
+
+  const returnedLogin = response.body
+
+  expect(returnedLogin.error).toEqual('invalid username or password')
+})
+
 
 
 afterAll(() => {
