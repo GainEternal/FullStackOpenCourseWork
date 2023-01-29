@@ -8,7 +8,6 @@ const api = supertest(app)
 const Blog = require('../models/blog')
 const User = require('../models/user')
 const helper = require('./test_helper')
-const { before } = require('lodash')
 
 describe('When there are initially some blogs saved', () => {
   let blogsAtStart
