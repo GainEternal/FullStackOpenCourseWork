@@ -212,7 +212,7 @@ describe('When there are initially some users in the db', () => {
   })
 })
 
-describe('When there are initially both users and blogs in the db', () => {
+describe.only('When there are initially both users and blogs in the db', () => {
   let blogsAtStart
 
   beforeEach(async () => {
@@ -378,7 +378,7 @@ describe('When there are initially both users and blogs in the db', () => {
           .post('/api/blogs')
           .set('authorization', ` ${signedToken}`)
           .send(newBlog)
-          .expect(201)
+          .expect(401)
 
         expect(result.body).toEqual({ error: 'token missing or invalid' })
       })
