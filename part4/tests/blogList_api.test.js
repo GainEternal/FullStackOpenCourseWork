@@ -323,8 +323,8 @@ describe('When there are initially both users and blogs in the db', () => {
       })
     })
 
-    describe('fails with status code 400', () => {
-      test('if missing title', async () => {
+    describe('fails with status code', () => {
+      test('400 if missing title', async () => {
         const newBlogNoTitle = {
           author: 'Justin Taylor',
           url: 'https://www.thegospelcoalition.org/blogs/justin-taylor/3-2-1-the-story-of-god-the-world-and-you-a-simple-gospel-explanation/',
@@ -339,7 +339,7 @@ describe('When there are initially both users and blogs in the db', () => {
         expect(response.body.error).toContain('`title` is required.')
       })
 
-      test('if missing url', async () => {
+      test('400 if missing url', async () => {
         const newBlogNoTitle = {
           title: '3-2-1: The Story of God, the World, and You',
           author: 'Justin Taylor',
@@ -354,7 +354,7 @@ describe('When there are initially both users and blogs in the db', () => {
         expect(response.body.error).toContain('`url` is required.')
       })
 
-      test('if authorization is incorrect', async () => {
+      test('401 if authorization is incorrect', async () => {
         const result = await api
           .post('/api/blogs')
           .set('authorization', ` ${signedToken}`)
@@ -364,7 +364,7 @@ describe('When there are initially both users and blogs in the db', () => {
         expect(result.body).toEqual({ error: 'token missing or invalid' })
       })
 
-      test('if authorization is missing', async () => {
+      test('401 if authorization is missing', async () => {
         const result = await api
           .post('/api/blogs')
           .send(newBlog)
