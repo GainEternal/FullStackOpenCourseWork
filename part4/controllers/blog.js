@@ -32,9 +32,21 @@ blogRouter.post('/', middleware.tokenExtractor, async (request, response) => {
 })
 
 blogRouter.delete('/:id', async (request, response) => {
-  await Blog.findByIdAndRemove(request.params.id)
+  const decodedToken = await jwt.verify(request.token, process.env.SECRET)
 
-  response.status(204).end()
+  const user = await User.findById(decodedToken.id)
+
+  const blogToDelete = await Blog.findById(request.params.id)
+  if (!blogToDelete) {
+    return response.status(404).end()
+  }
+
+  if (blogToDelete.user.toString() === user._id.toString()) {
+    await Blog.findByIdAndRemove(request.params.id)
+    response.status(204).end()
+  } else {
+    response.status(401).send({ error: 'token missing or invalid' })
+  }
 })
 
 blogRouter.put('/:id', async (request, response) => {

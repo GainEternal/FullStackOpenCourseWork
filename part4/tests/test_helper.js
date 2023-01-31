@@ -61,9 +61,10 @@ const initialBlogs = [
 
 const setupInitialBlogs = async () => {
   await Blog.deleteMany({})
-  const blogObject = initialBlogs.map((blog) => new Blog(blog))
-  const promiseArray = blogObject.map((blog) => blog.save())
-  await Promise.all(promiseArray)
+  for (const blog of initialBlogs) {
+    const blogObject = new Blog(blog)
+    await blogObject.save()
+  }
 }
 
 const blogsInDb = async () => {

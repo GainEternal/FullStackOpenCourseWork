@@ -37,28 +37,6 @@ describe('When there are initially some blogs saved', () => {
     })
   })
 
-  describe('Deleting a single blog post', () => {
-    test('fails with status code 400 and error message, if id is malformatted', async () => {
-      const response = await api.delete('/api/blogs/1').expect(400)
-
-      expect(response.body).toEqual({ error: 'malformatted id' })
-
-      const blogsAtEnd = await helper.blogsInDb()
-      expect(blogsAtEnd).toEqual(blogsAtStart)
-    })
-
-    test('succeeds with status code 204 if id is valid', async () => {
-      const blogToDelete = helper.initialBlogs[0]._id
-      await api.delete(`/api/blogs/${blogToDelete}`).expect(204)
-
-      const blogsAtEnd = await helper.blogsInDb()
-      const urls = blogsAtEnd.map((b) => b.url)
-
-      expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
-      expect(urls).not.toContain(blogToDelete.url)
-    })
-  })
-
   describe('Updating the likes for a blog post', () => {
     test('fails with status code 400 and error message, if id is malformatted', async () => {
       const response = await api.put('/api/blogs/1').expect(400)
@@ -212,7 +190,7 @@ describe('When there are initially some users in the db', () => {
   })
 })
 
-describe.only('When there are initially both users and blogs in the db', () => {
+describe('When there are initially both users and blogs in the db', () => {
   let blogsAtStart
 
   beforeEach(async () => {
@@ -223,7 +201,10 @@ describe.only('When there are initially both users and blogs in the db', () => {
   })
 
   test('blogs contain user with username, name, and id', async () => {
-    const response = await api.get('/api/blogs').expect(200)
+    const response = await api
+      .get('/api/blogs')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
 
     response.body.map((blog) => {
       expect(Object.keys(blog.user)).toEqual(['username', 'name', 'id'])
@@ -394,6 +375,95 @@ describe.only('When there are initially both users and blogs in the db', () => {
       })
 
       afterEach(async () => {
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toEqual(blogsAtStart)
+      })
+    })
+  })
+
+  describe('Deleting a single blog post', () => {
+    let savedUser
+    let signedToken
+    let blogToDelete
+
+    beforeEach(async () => {
+      savedUser = await User.findOne({ username: 'HidingBug' })
+      expect(savedUser.name).toEqual('Fredrick Garfunckle')
+
+      signedToken = jwt.sign(
+        { username: savedUser.username, id: savedUser._id },
+        process.env.SECRET,
+      )
+
+      blogToDelete = helper.initialBlogs[0]._id
+    })
+
+    test('succeeds with status code 204 if id is valid', async () => {
+      await api
+        .delete(`/api/blogs/${blogToDelete}`)
+        .set('authorization', `bearer ${signedToken}`)
+        .expect(204)
+
+      const blogsAtEnd = await helper.blogsInDb()
+      const urls = blogsAtEnd.map((b) => b.url)
+
+      expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length - 1)
+      expect(urls).not.toContain(blogToDelete.url)
+    })
+
+    describe('fails with error message', () => {
+      test('if blog id is malformatted', async () => {
+        const response = await api
+          .delete('/api/blogs/1')
+          .set('authorization', `bearer ${signedToken}`)
+          .expect(400)
+          .expect('Content-Type', /application\/json/)
+
+        expect(response.body).toEqual({ error: 'malformatted id' })
+
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toEqual(blogsAtStart)
+      })
+
+      test('if blog is already deleted', async () => {
+        await api
+          .delete('/api/blogs/5a422a851b54a676234d17f7')
+          .set('authorization', `bearer ${signedToken}`)
+          .expect(204)
+
+        await api
+          .delete(`/api/blogs/${blogToDelete}`)
+          .set('authorization', `bearer ${signedToken}`)
+          .expect(404)
+
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtStart.slice(1).sort()).toEqual(blogsAtEnd.sort())
+      })
+
+      test('if id is authorization is wrong', async () => {
+        const response = await api
+          .delete(`/api/blogs/${blogToDelete}`)
+          .set('authorization', 'wrong')
+          .expect(401)
+          .expect('Content-Type', /application\/json/)
+
+        expect(response.body).toEqual({ error: 'token missing or invalid' })
+
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toEqual(blogsAtStart)
+      })
+
+      test('if requesting user did not create blog', async () => {
+        const wrongBlogToDelete = helper.initialBlogs[5]._id
+
+        const response = await api
+          .delete(`/api/blogs/${wrongBlogToDelete}`)
+          .set('authorization', `bearer ${signedToken}`)
+          .expect(401)
+          .expect('Content-Type', /application\/json/)
+
+        expect(response.body).toEqual({ error: 'token missing or invalid' })
+
         const blogsAtEnd = await helper.blogsInDb()
         expect(blogsAtEnd).toEqual(blogsAtStart)
       })
