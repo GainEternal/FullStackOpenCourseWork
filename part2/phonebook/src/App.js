@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 
-import Filter from "./components/Filter"
-import NewContact from "./components/NewContact"
-import Persons from "./components/Persons"
-import Notification from "./components/Notification"
-import personService from "./services/persons"
+import Filter from './components/Filter'
+import NewContact from './components/NewContact'
+import Persons from './components/Persons'
+import Notification from './components/Notification'
+import personService from './services/persons'
 
 const App = () => {
   const [persons, setPersons] = useState([])
@@ -16,13 +16,11 @@ const App = () => {
 
   useEffect(() => {
     if (!persons.length) {
-      personService
-        .getAll()
-        .then(initialContacts => {
-          setPersons(persons.concat(initialContacts))
-        })
+      personService.getAll().then((initialContacts) => {
+        setPersons(persons.concat(initialContacts))
+      })
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleNameChange = (event) => {
@@ -38,37 +36,41 @@ const App = () => {
   }
 
   const deletePersonOf = (id) => {
-    const name = persons.find(person => person.id === id).name
+    const name = persons.find((person) => person.id === id).name
     if (window.confirm(`Delete ${name}?`)) {
-      personService
-        .remove(id)
-        .then(returned => {
-          setPersons(persons.filter(person => person.id !== id))
-        })
+      personService.remove(id).then((returned) => {
+        setPersons(persons.filter((person) => person.id !== id))
+      })
     }
   }
 
   const modifyContactNumber = () => {
     const modContact = {
-      ...persons.find(person => person.name === newName),
-      number: newNumber
+      ...persons.find((person) => person.name === newName),
+      number: newNumber,
     }
     personService
       .modify(modContact)
-      .then(returnedPerson => {
-        setPersons(persons.map(person => person.name === returnedPerson.name
-          ? { ...person, number: returnedPerson.number }
-          : person
-        ))
+      .then((returnedPerson) => {
+        setPersons(
+          persons.map((person) =>
+            person.name === returnedPerson.name
+              ? { ...person, number: returnedPerson.number }
+              : person,
+          ),
+        )
         setNewName('')
         setNewNumber('')
         displayMessage(`Modified ${returnedPerson.name}`, '')
       })
-      .catch(error => {
+      .catch((error) => {
         if ('error' in error.response.data) {
           displayMessage(error.response.data.error, 'error')
         } else {
-          displayMessage(`Information of ${newName} has already been removed from server`, 'error')
+          displayMessage(
+            `Information of ${newName} has already been removed from server`,
+            'error',
+          )
         }
       })
   }
@@ -76,20 +78,20 @@ const App = () => {
   const createContact = () => {
     const newContact = {
       name: newName,
-      number: newNumber
+      number: newNumber,
     }
     personService
       .create(newContact)
-      .then(returnedPerson => {
+      .then((returnedPerson) => {
         setPersons(persons.concat(returnedPerson))
         setNewName('')
         setNewNumber('')
 
         displayMessage(`Added ${returnedPerson.name}`, '')
       })
-      .catch(error => {
-        console.log(error);
-        console.log(error.response.data.error);
+      .catch((error) => {
+        console.log(error)
+        console.log(error.response.data.error)
         displayMessage(error.response.data.error, 'error')
       })
   }
@@ -100,14 +102,13 @@ const App = () => {
     setTimeout(() => {
       setConfirmMessage(null)
     }, 5000)
-  } 
-  
+  }
+
   const addContact = (event) => {
     event.preventDefault()
 
     if (contactAlreadyExists()) {
-      const confirmString =
-        `${newName} is already added to phonebook. \nReplace the older number with a new one?`
+      const confirmString = `${newName} is already added to phonebook. \nReplace the older number with a new one?`
       if (window.confirm(confirmString)) {
         modifyContactNumber()
       }
@@ -120,33 +121,36 @@ const App = () => {
     return persons.some((current) => current.name === newName)
   }
 
-  const personsToShow =
-    persons.filter((person) => person.name.toLowerCase().includes(filterText))
-
+  const personsToShow = persons.filter((person) =>
+    person.name.toLowerCase().includes(filterText),
+  )
 
   return (
-    <div>
-      <h1>Phonebook</h1>
+    <>
+      <div className="jumbotron text-center">
+        <h1>Phonebook</h1>
+      </div>
+      <div className="container-fluid">
+        <Notification message={notifyMessage} type={messageType} />
+      </div>
 
-      <Notification message={notifyMessage} type={messageType} />
+      <div className="container-fluid">
+        <h2>Add New Contact</h2>
+        <NewContact
+          newName={newName}
+          handleName={handleNameChange}
+          newNumber={newNumber}
+          handleNumber={handleNumberChange}
+          handleButton={addContact}
+        />
+      </div>
 
-      <Filter filterText={filterText} handleFilter={handleFilterChange} />
-
-      <h2>Add New Contact</h2>
-      <NewContact
-        newName={newName}
-        handleName={handleNameChange}
-        newNumber={newNumber}
-        handleNumber={handleNumberChange}
-        handleButton={addContact}
-      />
-
-      <h2>Contacts</h2>
-      <Persons
-        persons={personsToShow}
-        deletePersonOf={deletePersonOf}
-      />
-    </div>
+      <div className="container-fluid">
+        <h2>Contacts</h2>
+        <Filter filterText={filterText} handleFilter={handleFilterChange} />
+        <Persons persons={personsToShow} deletePersonOf={deletePersonOf} />
+      </div>
+    </>
   )
 }
 
