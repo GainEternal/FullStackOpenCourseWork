@@ -26,3 +26,4 @@ yarn-error.log*
 **/node_modules
 **/course
 .env
+/part4/utils/databaseSetup.js
